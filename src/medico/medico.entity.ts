@@ -1,8 +1,8 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
-import { PacienteEntity } from '../paciente/paciente.entity';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from 'typeorm';
+import { Paciente } from '../paciente/paciente.entity';
 
 @Entity()
-export class MedicoEntity {
+export class Medico {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -15,6 +15,6 @@ export class MedicoEntity {
   @Column()
   telefono: string;
 
-  @OneToMany(() => PacienteEntity, (paciente) => paciente.medico)
-  pacientes: PacienteEntity[];
+  @ManyToMany(() => Paciente, (paciente) => paciente.medicos)
+  pacientes: Paciente[];
 }

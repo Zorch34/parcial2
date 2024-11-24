@@ -3,15 +3,17 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PacienteModule } from './paciente/paciente.module';
 import { MedicoModule } from './medico/medico.module';
 import { DiagnosticoModule } from './diagnostico/diagnostico.module';
-import { PacienteEntity } from './paciente/paciente.entity';
-import { MedicoEntity } from './medico/medico.entity';
-import { DiagnosticoEntity } from './diagnostico/diagnostico.entity';
+import { Paciente } from './paciente/paciente.entity';
+import { Medico } from './medico/medico.entity';
+import { Diagnostico } from './diagnostico/diagnostico.entity';
+import { PacienteMedicoModule } from './paciente-medico/paciente-medico.module';
 
 @Module({
   imports: [
     PacienteModule,
     MedicoModule,
     DiagnosticoModule,
+    PacienteMedicoModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
@@ -19,7 +21,7 @@ import { DiagnosticoEntity } from './diagnostico/diagnostico.entity';
       username: 'postgres',
       password: 'Lunala2024.',
       database: 'hospital',
-      entities: [PacienteEntity, MedicoEntity, DiagnosticoEntity],
+      entities: [Paciente, Medico, Diagnostico],
       dropSchema: true,
       synchronize: true,
       keepConnectionAlive: true,

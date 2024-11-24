@@ -1,36 +1,34 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { DiagnosticoEntity } from './diagnostico.entity';
+import { Diagnostico } from './diagnostico.entity';
 
 @Injectable()
 export class DiagnosticoService {
   constructor(
-    @InjectRepository(DiagnosticoEntity)
-    private readonly diagnosticoRepository: Repository<DiagnosticoEntity>,
+    @InjectRepository(Diagnostico)
+    private readonly diagnosticoRepository: Repository<Diagnostico>,
   ) {}
 
-  async findAll(): Promise<DiagnosticoEntity[]> {
-    return await this.diagnosticoRepository.find();
+  async findAll(): Promise<Diagnostico[]> {
+    return await this.diagnosticoRepository.find({ relations: ['pacientes'] });
   }
 
-  async findOne(id: string): Promise<DiagnosticoEntity> {
-    const diagnostico = await this.diagnosticoRepository.findOne({ where: { id } });
+  async findOne(id: string): Promise<Diagnostico> {
+    const diagnostico = await this.diagnosticoRepository.findOne({ where: { id }, relations: ['pacientes'] });
     if (!diagnostico) {
-      throw new NotFoundException(`Diagnostico with ID ${id} not found`);
+      throw new NotFoundException('Diagnóstico no encontrado');
     }
     return diagnostico;
   }
 
-  async create(diagnosticoData: Partial<DiagnosticoEntity>): Promise<DiagnosticoEntity> {
-    const diagnostico = this.diagnosticoRepository.create(diagnosticoData);
+  async create(diagnostico: Diagnostico): Promise<Diagnostico> {
     return await this.diagnosticoRepository.save(diagnostico);
   }
 
-  async update(id: string, diagnosticoData: Partial<DiagnosticoEntity>): Promise<DiagnosticoEntity> {
-    const diagnostico = await this.findOne(id);
-    Object.assign(diagnostico, diagnosticoData);
-    return await this.diagnosticoRepository.save(diagnostico);
+  async update(id: string, diagnostico: Diagnostico): Promise<Diagnostico> {
+    const diagnosticoExistente = await this.findOne(id);
+    return await this.diagnosticoRepository.save({ ...diagnosticoExistente, ...diagnostico });
   }
 
   async delete(id: string): Promise<void> {

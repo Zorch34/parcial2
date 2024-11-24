@@ -1,37 +1,60 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { PacienteEntity } from './paciente.entity';
 import { PacienteService } from './paciente.service';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Paciente } from './paciente.entity';
+import { Repository } from 'typeorm';
+import { Medico } from '../medico/medico.entity';
 
 describe('PacienteService', () => {
   let service: PacienteService;
-  let repository: Repository<PacienteEntity>;
+  let pacienteRepository: Repository<Paciente>;
+  let medicoRepository: Repository<Medico>;
+
+  const mockPacienteRepository = {
+    save: jest.fn(),
+    findOne: jest.fn(),
+    find: jest.fn(),
+    remove: jest.fn(),
+  };
+
+  const mockMedicoRepository = {
+    findOne: jest.fn(),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PacienteService,
         {
-          provide: getRepositoryToken(PacienteEntity),
-          useClass: Repository,
+          provide: getRepositoryToken(Paciente),
+          useValue: mockPacienteRepository,
+        },
+        {
+          provide: getRepositoryToken(Medico),
+          useValue: mockMedicoRepository,
         },
       ],
     }).compile();
 
     service = module.get<PacienteService>(PacienteService);
-    repository = module.get<Repository<PacienteEntity>>(getRepositoryToken(PacienteEntity));
+    pacienteRepository = module.get<Repository<Paciente>>(getRepositoryToken(Paciente));
+    medicoRepository = module.get<Repository<Medico>>(getRepositoryToken(Medico));
   });
 
-  it('findAll should return all pacientes', async () => {
-    const pacientes = [{ id: '1', nombre: 'Carlos', genero: 'Masculino', medico: null }];
-    jest.spyOn(repository, 'find').mockResolvedValue(pacientes as PacienteEntity[]);
-    const result = await service.findAll();
-    expect(result).toEqual(pacientes);
+  it('debería crear un paciente correctamente', async () => {
+    const paciente = { id: '1', nombre: 'Juan', genero: 'M' };
+    mockPacienteRepository.save.mockResolvedValue(paciente);
+
+    const result = await service.create(paciente as Paciente);
+    expect(result).toEqual(paciente);
+    expect(mockPacienteRepository.save).toHaveBeenCalledTimes(1);
   });
 
-  it('findOne should throw exception if paciente not found', async () => {
-    jest.spyOn(repository, 'findOne').mockResolvedValue(null);
-    await expect(service.findOne('0')).rejects.toThrow('El paciente no existe');
+  it('debería lanzar excepción si el nombre tiene menos de 3 caracteres', async () => {
+    const paciente = { id: '1', nombre: 'Ju', genero: 'M' };
+
+    await expect(service.create(paciente as Paciente)).rejects.toThrow(
+      'El nombre debe tener al menos 3 caracteres',
+    );
   });
 });
